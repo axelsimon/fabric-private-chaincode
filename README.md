@@ -16,9 +16,9 @@ To remedy this problem, this project uses Trusted Execution Environments
 privacy of chaincode data and computation from potentially untrusted peers.
 
 Intel SGX is the most prominent TEE today and available with commodity
-CPUs. It establishes trusted execution contexts called enclaves on a CPU,
-which isolate data and programs from the host operating system in hardware and
-ensure that outputs are correct.
+CPUs. Using hardware-based encryption, it establishes trusted execution
+contexts called enclaves which isolate data and programs from the host
+operating system and ensure that outputs are correct.
 
 This lab provides a framework to develop and execute Fabric chaincode within
 an enclave.  It allows to write chaincode applications where the data is
@@ -34,8 +34,8 @@ Intel SGX for Hyperledger Fabric as presented and published in the paper:
   Solution for Hyperledger Fabric. https://arxiv.org/abs/1805.08541
 
 We provide an initial proof-of-concept implementation of the proposed
-architecture. Note that the code provided in this repository is prototype code
-and not meant for production use! The main goal of this lab is to discuss and
+architecture. Note that the code provided in this repository is **prototype code
+and not meant for production use!** The main goal of this lab is to discuss and
 refine the proposed architecture involving the Hyperledger community.
 
 For up to date information about our community meeting schedule, past
@@ -100,22 +100,23 @@ The system consists of the following components:
 
 ## Getting started
 
-The following steps guide you through the build phase and configuration, for
-deploying and running an example private chaincode.
+The following steps guide you through the build phase and configuration
+for deploying and running an example private chaincode.
 
-We assume that you are familiar with building Fabric manually; otherwise we highly recommend to spend some time to build
-Fabric and run a simple network with a few peers and a ordering service. We recommend the Fabric documentation as your
-starting point. You should start with
-[installing](https://hyperledger-fabric.readthedocs.io/en/release-1.4/prereqs.html) Fabric dependencies and setting up
-your [development environment](https://hyperledger-fabric.readthedocs.io/en/release-1.4/dev-setup/build.html).
+We assume that you are familiar with building Fabric manually; otherwise we
+highly recommend spending some time building Fabric and running a simple
+network with a few peers and a ordering service.
+We recommend the Fabric documentation as your starting point. You should
+start by [installing](https://hyperledger-fabric.readthedocs.io/en/release-1.4/prereqs.html)
+Fabric dependencies and setting up your [development environment](https://hyperledger-fabric.readthedocs.io/en/release-1.4/dev-setup/build.html).
 
 Moreover, we assume that you are familiar with the Intel SGX SDK.
 
 ### Requirements
 
 Make sure that you have the following required dependencies installed
-(see also below [docker section](#docker) for a _pre-configured fpc developer
-docker image_ which handles the corresponding installs automatically
+(see also below [Docker section](#docker) for a _pre-configured fpc developer
+Docker image_ which handles the corresponding installs automatically
 for you):
 
 * Linux (OS) (we recommend Ubuntu 18.04, see [list](https://github.com/intel/linux-sgx#prerequisites) supported OS)
@@ -143,25 +144,25 @@ for you):
 
 #### Docker
 
-As standard Fabric, we require docker to run chaincode.  We recommend
-to set privileges to manage docker as a non-root user. See the
-official docker [documentation](https://docs.docker.com/install/linux/linux-postinstall/)
+Just like standard Fabric, we require Docker to run chaincode.  We recommend
+setting privileges to manage Docker as a non-root user. See the
+official Docker [documentation](https://docs.docker.com/install/linux/linux-postinstall/)
 for more details.
 
 ##### Docker-based FPC Development Environment
 
-Additionally, we also provide a docker image containing the FPC
+Additionally, we also provide a Docker image containing the FPC
 development environment. This will enable you to get a quick start to
 get FPC running.
 First make sure your host has
-* A running Docker daemon compatible with docker provided by Ubuntu
+* A running Docker daemon compatible with Docker provided by Ubuntu
   18.04, currently `Docker version 18.09`.  It also should use
   `/var/run/docker.sock` as socket to interact with the daemon (or you
   will have to override in `./config.override.mk` the default
   definition in make of `DOCKER_DAEMON_SOCKET`)
 * GNU make
 
-To build the docker image, run
+To build the Docker image, run
 
     $ cd utils/docker; make dev
 
@@ -176,20 +177,20 @@ dependencies like fabric built, ready to build and run FPC.
 A few notes:
 * if your host is SGX enabled, i.e., there is a device `/dev/sgx` or
   `/dev/isgx` and your PSW daemon listens to `/var/run/aesmd`, then
-  the docker image will be sgx-enabled and your settings from
+  the Docker image will be sgx-enabled and your settings from
   `./config/ias` will be used. You will, though, have to
   manually set `SGX_MODE=HW` before building anything to use HW mode.
 * if you want additional apt packages in your container image, define
   `DOCKER_DEV_IMAGE_APT_ADD__PKGS` in `./config.override.mk` with a
   list of packages you want and they will be automatically added to
-  the docker image
+  the Docker image
 * Docker images do not persist between runs. Hence, you might also
   consider maintaining the FPC source on your host and just export it
   as a volume mapped to `/project/src/github.com/hyperledger-labs/fabric-private-chaincode`.
   To achieve this, add `DOCKER_DEV_RUN_OPTS= -v ../..:/project/src/github.com/hyperledger-labs/fabric-private-chaincode`
   to your `./config.override.mk`.
 * if you run behind a proxy, you might have to configure the proxy,
-  e.g., for docker (`~/.docker/config.json`).
+  e.g., for Docker (`~/.docker/config.json`).
 * Due to the way the peer's port for chaincode connection is managed,
   you will be able to run only a single FPC development container on a
   particular host.
@@ -286,18 +287,20 @@ Checkout Fabric 1.4.3 release and apply our patch using the following commands:
 Note that this patch does currently not work with the Fabric master branch, therefore make sure you use the Fabric
 v1.4.3 branch.
 
-Make sure Fabric is in your ``$GOPATH`` and you enable the plugin feature using `GO_TAGS=pluginsenabled`. Simply run"
+Make sure Fabric is in your `$GOPATH` and that you enable the plugin feature using `GO_TAGS=pluginsenabled`.
+To do so, simply run:
 
     $ cd $FABRIC_PATH
     $ GO_TAGS=pluginsenabled make
 
-Building Fabric may take a while and it's time to get a coffee. Also, be not surprised if unit tests fail. In order to
-just build the peer you can run the following command:
+Building Fabric may take a while and it's a good time to get a coffee or tea. Also, don't be surprised if unit tests fail.
+
+If you want to build just the peer, you can run the following command:
 
     $ GO_TAGS=pluginsenabled make peer
 
 Please make sure that the peer is _always_ built with GO_TAGS, otherwise our custom validation plugins will (silently!)
-ignored by the peer, despite the settings in ``core.yaml``.
+be ignored by the peer, despite the settings in ``core.yaml``.
 
 
 #### Build the project
@@ -314,7 +317,7 @@ This will build all required components and run the integration tests.
 ##### Building individual components
 
 In [utils/fabric-ccenv-sgx/](utils/fabric-ccenv-sgx) you can find instructions
-to create a custom fabric-ccenv docker image that is required to execute a
+to create a custom fabric-ccenv Docker image that is required to execute a
 chaincode within an enclave.
 
 The chaincode enclave [ecc_enclave](ecc_enclave) and the ledger
@@ -328,17 +331,17 @@ enclave and [tlcc/](tlcc) for the ledger enclave.
 In order to run and deploy a chaincode enclave we need to build the enclave
 registry. See [ercc/](ercc).
 
-Moreover, we provide a set of integration tests in [integration/](integration) to demonstrate Fabric Private Chaincode
-capabilities.
+Moreover, we provide a set of integration tests in [integration/](integration)
+to demonstrate Fabric Private Chaincode capabilities.
 
 
-##### Trouble shooting
+##### Troubleshooting
 
 ###### Docker
 
-Building the project requires docker. We do not recommend to run `sudo make`
-to resolve issues with mis-configured docker environments as this also changes your `$GOPATH`. Please see hints on
-[docker](#docker) installation above.
+Building the project requires Docker. We do not recommend running `sudo make`
+to resolve issues with mis-configured Docker environments as this also changes
+your `$GOPATH`. Please see hints regarding [Docker](#docker) installation above.
 
 
 ###### Working from behind a proxy
@@ -347,9 +350,10 @@ The current code should work behind a proxy assuming
   * you have defined the corresponding environment variables (i.e.,
   `http_proxy`, `https_proxy` and, potentially, `no_proxy`) properly
   defined, and
-  * docker (daemon & client) is properly set up for proxies as
+  * Docker (daemon & client) is properly set up for proxies as
     outlined in the Docker documentation for [clients](https://docs.docker.com/network/proxy/) and the [daemon](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy).
-If you run Ubuntu 18.04, make sure you run docker 18.09 or later. Otherwise you will run into problems with DNS resolution inside the container.
+If you run Ubuntu 18.04, make sure you run Docker 18.09 or later. Otherwise
+you will run into problems with DNS resolution inside the container.
 
 Another problem you might encounter when running the integration tests 
 insofar that some '0.0.0.0' in ``integration/config/core.yaml`` used by
@@ -363,8 +367,10 @@ ip address such as '127.0.0.1'.
 
 ###### Environment settings
 
-Our build system requires a few variables to be set in your environment. Missing variables may cause `make` to fail. 
-Below you find a summary of all variables which you should carefully check and add to your environment. 
+Our build system requires a few variables to be set in your environment.
+Missing variables may cause `make` to fail. 
+Below you find a summary of all variables which you should carefully check 
+and add to your environment. 
 
 ```bash
 # Path to your SGX SDK and SGX SSL
@@ -393,12 +399,13 @@ export FPC_ATTESTATION_TYPE = epid_linkable
 
 ###### Clang-format
 
-Some users may experience problems with clang-format. In particular, the error `command not found: clang-format` 
-appears even after installing it via `apt-get install clang-format`. See [here](https://askubuntu.com/questions/1034996/vim-clang-format-clang-format-is-not-found)
+Some users may experience problems with clang-format. In particular, the
+error `command not found: clang-format` appears even after installing via
+`apt-get install clang-format`. See [here](https://askubuntu.com/questions/1034996/vim-clang-format-clang-format-is-not-found)
 for how to fix this.  
 
 
-###### ERCC setup failurs
+###### ERCC setup failures
 
 If, e.g., running the integration tests executed when you run `make`,
 you get errors of following form:
@@ -436,12 +443,13 @@ By running the following command you can generate the documentation.
 
 ## Getting Help
 
-Found a bug? Need help to fix an issue? You have a great idea for a new feature? Talk to us! You can reach us on
+Found a bug? Need help to fix an issue? You have a great idea for a new
+feature? Talk to us! You can reach us on
 [RocketChat](https://chat.hyperledger.org/) in #private-data-objects. 
 
-We also have a weekly meeting every Tuesday at 3 pm GMT on [Zoom](https://zoom.us/my/hyperledger.community.3). Please
-see the Hyperledger [community calendar](https://wiki.hyperledger.org/display/HYP/Calendar+of+Public+Meetings) for
-details.
+We also have a weekly meeting every Tuesday at 3 pm GMT on [Zoom](https://zoom.us/my/hyperledger.community.3).
+Please see the Hyperledger [community calendar](https://wiki.hyperledger.org/display/HYP/Calendar+of+Public+Meetings)
+for details.
 
 ## Contributions Welcome
 
